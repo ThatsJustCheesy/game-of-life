@@ -179,8 +179,8 @@
         (lume.map
           (table-cat
             ; [[home 0 0]]
-            (replicate #[automaton (math.random -5 -1) (math.random -5 -1)] 15)
-            (replicate #[automaton (math.random  1  5) (math.random  1  5)] 10)
+            (replicate #[automaton (math.random -10 -1) (math.random -10 -1)] 60)
+            (replicate #[automaton (math.random  1  10) (math.random  1  10)] 60)
           )
           (fn [c] (let [ty (. c 1) x (. c 2) y (. c 3)]
             { :type ty :x x :y y }
