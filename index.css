@@ -3,8 +3,7 @@ html {
   color: #eee;
 }
 
-#button-reset {
-  margin-top: 2vh;
+button {
   width: 150px;
   border: none;
 }
@@ -17,6 +16,9 @@ html {
   flex-flow: column nowrap;
   justify-content: center;
   align-items: center;
+}
+.absolute-centered .controls {
+  margin-top: 2vh;
 }
 
 #board {

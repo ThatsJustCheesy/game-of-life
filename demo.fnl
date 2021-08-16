@@ -154,6 +154,10 @@
 ; BEGIN GAME OF LIFE
 
 (global advanceToken nil)
+(global running? true)
+(global advance-interval-ms 500)
+
+(global set-advance-interval nil)
 
 (math.randomseed (os.time))
 
@@ -196,9 +200,22 @@
         )
         board
       )
+      (fn obj-at [matrix x y]
+        (?. (. matrix x) y)
+      )
       (fn set-in-board-matrix [matrix obj]
         (tset matrix obj.x (or (. matrix obj.x) []))
         (tset (. matrix obj.x) obj.y obj)
+      )
+      (fn clear-in-board-matrix [matrix x y]
+        (tset matrix x (or (. matrix x) []))
+        (tset (. matrix x) y nil)
+      )
+      (fn toggle-in-board-matrix [matrix obj]
+        (if (nil? (obj-at matrix obj.x obj.y))
+          (set-in-board-matrix matrix obj)
+          (clear-in-board-matrix matrix obj.x obj.y)
+        )
       )
       (fn build-board-matrix [board]
         (var matrix [])
@@ -226,26 +243,49 @@
           )
         )
       )
-    
+      
       (var dragging? false)
+      (var in-bounds? false)
+      (var dragged? false)
       (canvas.classList:add "cursor-draggable")
       (fn canvas.onmousedown []
         (set dragging? true)
+        (set in-bounds? true)
+        (set dragged? false)
         (canvas.classList:remove "cursor-draggable")
         (canvas.classList:add "cursor-dragging")
       )
-      (fn canvas.onmouseup []
+      (fn canvas.onmouseup [canvas event]
         (set dragging? false)
         (canvas.classList:remove "cursor-dragging")
         (canvas.classList:add "cursor-draggable")
+        
+        (fn round [x] (math.floor (+ x 0.5)))
+        (when (not dragged?)
+          (let [board-x (round (/ (+ (- x) event.offsetX) grid-spacing))
+                board-y (round (/ (+ (- y) event.offsetY) grid-spacing))]
+            (print (.. "Adding at " board-x " " board-y))
+            (toggle-in-board-matrix board-matrix { :type automaton :x board-x :y board-y })
+            (set board (build-board board-matrix))
+      
+            (draw ctx board)
+          )
+        )
       )
       (fn canvas.onmouseleave []
-        (set dragging? false)
+        (set in-bounds? false)
+        (set dragged? true)
         (canvas.classList:remove "cursor-dragging")
         (canvas.classList:add "cursor-draggable")
       )
+      (fn canvas.onmouseenter [canvas event]
+        (set in-bounds? true)
+        (set dragging? (and dragging? (= (band event.buttons 1) 1)))
+      )
       (fn canvas.onmousemove [canvas event]
-        (when dragging?
+        (when (and dragging? in-bounds?)
+          (set dragged? (or dragged? (> event.movementX 1) (> event.movementY 1)))
+          
           ; Move grid.
           (set x (lume.clamp (+ x event.movementX) board-min-x board-max-x))
           (set y (lume.clamp (+ y event.movementY) board-min-y board-max-y))
@@ -254,11 +294,8 @@
         )
       )
 
-      (fn obj-at [x y]
-        (?. (. board-matrix x) y)
-      )
       (fn neighbor [obj dx dy]
-        (obj-at (+ obj.x dx) (+ obj.y dy))
+        (obj-at board-matrix (+ obj.x dx) (+ obj.y dy))
       )
       (local neighbor-deltas [
         [-1 -1]
@@ -327,24 +364,43 @@
       
         (draw ctx board)
       )
+
+      (global set-advance-interval (fn [interval]
+        (when _G.advanceToken
+          (window:clearInterval advanceToken)
+        )
+        (global advanceToken (window:setInterval #(when running? (advance)) interval))
+      ))
     
       (draw ctx board)
-      
-      (when _G.advanceToken
-        (window:clearInterval advanceToken)
-      )
-      (global advanceToken (window:setInterval advance 500))
+      (set-advance-interval advance-interval-ms)
     )
     
     (reset)
     
     (window:addEventListener "keydown" (fn [_ event]
-      (when (= event.key "r")
-        (reset)
+      (match event.key
+        "r" (reset)
+        "p" (global running? (not running?))
       )
     ))
     (let [reset-button (document:querySelector "#button-reset")]
       (set reset-button.onclick reset)
+    )
+    (let [pause-button (document:querySelector "#button-pause")]
+      (set pause-button.onclick (fn []
+        (global running? (not running?))
+      ))
+    )
+    (let [speed-slider (document:querySelector "#slider-speed")]
+      (set speed-slider.oninput (fn [speed-slider]
+        (let [attrs speed-slider.attributes
+              max-attr (attrs:getNamedItem "max")
+              max (js.tonumber max-attr.value)]
+          (global advance-interval-ms (- max speed-slider.value))
+          (set-advance-interval advance-interval-ms)
+        )
+      ))
     )
   )
 )
