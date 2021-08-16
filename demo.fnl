@@ -343,5 +343,8 @@
         (reset)
       )
     ))
+    (let [reset-button (document:querySelector "#button-reset")]
+      (set reset-button.onclick reset)
+    )
   )
 )
