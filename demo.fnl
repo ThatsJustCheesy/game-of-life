@@ -317,7 +317,7 @@
         a
       )
       (fn count-neighbors [neighbors]
-        (length (lume.keys neighbors))
+        (length (lume.array (pairs neighbors)))
       )
       (fn survives [neighbors]
         (let [count (count-neighbors neighbors)]
@@ -336,9 +336,8 @@
         (var new-matrix [])
         (each [_ obj (pairs board)]
           ; Check surrounding cells for potential newborns.
-          (for [i 1 8]
-            (let [deltas (. neighbor-deltas i)
-                  candidate { :type automaton :x (+ obj.x (fst deltas)) :y (+ obj.y (snd deltas)) }]
+          (each [_ deltas (ipairs neighbor-deltas)]
+            (let [candidate { :type automaton :x (+ obj.x (fst deltas)) :y (+ obj.y (snd deltas)) }]
               (when (should-be-produced candidate)
                 (set-in-board-matrix new-matrix candidate)
               )
