@@ -1,0 +1,30 @@
+html {
+  background: #0C0E0F;
+  color: #eee;
+}
+
+#button-reset {
+  margin-top: 2vh;
+  width: 150px;
+  border: none;
+}
+
+.absolute-centered {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+}
+
+#board {
+  z-index: 10;
+}
+.cursor-draggable {
+  cursor: grab;
+}
+.cursor-dragging {
+  cursor: grabbing;
+}

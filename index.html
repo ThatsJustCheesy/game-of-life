@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>Conway's Game of Life</title>
+    
+    <link rel="stylesheet" href="index.css">
+    <script src="fengari-web.js" type="text/javascript"></script>
+    
+  </head>
+  <body>
+    
+    <div class="absolute-centered">
+      <canvas id="board">Please enable JavaScript.</canvas>
+      <button type="button" id="button-reset">Reset (R)</button>
+    </div>
+    
+    <script type="application/lua">
+      -- just make a few things not blow up
+      _G.os.exit = function() end
+      _G.os.getenv = function() return nil end
+      
+      -- require-macros depends on io.open; we splice in a hacky replacement
+      io={open=function(filename)
+             return {
+                read = function(_, all)
+                   assert(all=="*all", "Can only read *all.")
+                   local xhr = js.new(js.global.XMLHttpRequest)
+                   xhr:open("GET", filename, false)
+                   xhr:send()
+                   assert(xhr.status == 200, xhr.status .. ": " .. xhr.statusText)
+                   return tostring(xhr.response)
+                end,
+                close = function() end,
+             }
+      end}
+      
+      local fennel = require "fennel"
+      table.insert(package.loaders or package.searchers, fennel.searcher)
+      local demo = require "demo"
+    </script>
+    
+  </body>
+</html>

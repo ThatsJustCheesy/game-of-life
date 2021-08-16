@@ -1,0 +1,3 @@
+[ *.fnl ]
+tabWidth = 2
+softTabs = true
